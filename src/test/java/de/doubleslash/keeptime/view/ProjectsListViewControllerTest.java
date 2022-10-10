@@ -16,73 +16,72 @@
 
 package de.doubleslash.keeptime.view;
 
+import de.doubleslash.keeptime.model.Project;
+import org.junit.Test;
+
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import org.junit.Test;
-
-import de.doubleslash.keeptime.model.Project;
-
 public class ProjectsListViewControllerTest {
 
-   @Test
-   public void shouldMatchWhenSearchTermIsInDescription() {
-      final Project project = new Project();
+    @Test
+    public void shouldMatchWhenSearchTermIsInDescription() {
+        final Project project = new Project();
 
-      project.setName("NotSearchTerm");
-      project.setDescription("Searchterm_test");
+        project.setName("NotSearchTerm");
+        project.setDescription("Searchterm_test");
 
-      assertTrue(ProjectsListViewController.doesProjectMatchSearchFilter("test", project));
-   }
+        assertTrue(ProjectsListViewController.doesProjectMatchSearchFilter("test", project));
+    }
 
-   @Test
-   public void shouldMatchWhenSearchTermIsInName() {
-      final Project project = new Project();
+    @Test
+    public void shouldMatchWhenSearchTermIsInName() {
+        final Project project = new Project();
 
-      project.setName("SearchTerm_CZ");
-      project.setDescription("NotSearchTerm");
+        project.setName("SearchTerm_CZ");
+        project.setDescription("NotSearchTerm");
 
-      assertTrue(ProjectsListViewController.doesProjectMatchSearchFilter("CZ", project));
-   }
+        assertTrue(ProjectsListViewController.doesProjectMatchSearchFilter("CZ", project));
+    }
 
-   @Test
-   public void shouldMatchWhenSearchTermIsNameAndDescription() {
-      final Project project = new Project();
+    @Test
+    public void shouldMatchWhenSearchTermIsNameAndDescription() {
+        final Project project = new Project();
 
-      project.setName("SearchTerm_Peter");
-      project.setDescription("Peter_IsSearchTerm");
+        project.setName("SearchTerm_Peter");
+        project.setDescription("Peter_IsSearchTerm");
 
-      assertTrue(ProjectsListViewController.doesProjectMatchSearchFilter("Peter", project));
-   }
+        assertTrue(ProjectsListViewController.doesProjectMatchSearchFilter("Peter", project));
+    }
 
-   @Test
-   public void shouldMatchWhenCaseDiffersInNameAsSearchTerm() {
-      final Project project = new Project();
+    @Test
+    public void shouldMatchWhenCaseDiffersInNameAsSearchTerm() {
+        final Project project = new Project();
 
-      project.setName("PeTerPAn");
-      project.setDescription("");
+        project.setName("PeTerPAn");
+        project.setDescription("");
 
-      assertTrue(ProjectsListViewController.doesProjectMatchSearchFilter("pEtErpAn", project));
-   }
+        assertTrue(ProjectsListViewController.doesProjectMatchSearchFilter("pEtErpAn", project));
+    }
 
-   @Test
-   public void shouldMatchWhenCaseDiffersInDescriptionAsSearchTerm() {
-      final Project project = new Project();
+    @Test
+    public void shouldMatchWhenCaseDiffersInDescriptionAsSearchTerm() {
+        final Project project = new Project();
 
-      project.setName("");
-      project.setDescription("MylItTLeaNT");
+        project.setName("");
+        project.setDescription("MylItTLeaNT");
 
-      assertTrue(ProjectsListViewController.doesProjectMatchSearchFilter("mYliTTlEAnT", project));
-   }
+        assertTrue(ProjectsListViewController.doesProjectMatchSearchFilter("mYliTTlEAnT", project));
+    }
 
-   @Test
-   public void shouldNotMatchWhenDescriptionAndNameAreNotMatching() {
-      final Project project = new Project();
+    @Test
+    public void shouldNotMatchWhenDescriptionAndNameAreNotMatching() {
+        final Project project = new Project();
 
-      project.setName("MyNameIsJohn");
-      project.setDescription("I am a project.");
+        project.setName("MyNameIsJohn");
+        project.setDescription("I am a project.");
 
-      assertFalse(ProjectsListViewController.doesProjectMatchSearchFilter("Hellow world", project));
-   }
+        assertFalse(ProjectsListViewController.doesProjectMatchSearchFilter("Hellow world", project));
+    }
 
 }

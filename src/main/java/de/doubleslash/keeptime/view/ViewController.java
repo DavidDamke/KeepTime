@@ -16,37 +16,16 @@
 
 package de.doubleslash.keeptime.view;
 
-import java.awt.image.BufferedImage;
-import java.io.IOException;
-import java.time.Duration;
-import java.time.LocalDateTime;
-import java.util.Optional;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import de.doubleslash.keeptime.common.ColorHelper;
-import de.doubleslash.keeptime.common.DateFormatter;
-import de.doubleslash.keeptime.common.Resources;
+import de.doubleslash.keeptime.common.*;
 import de.doubleslash.keeptime.common.Resources.RESOURCE;
-import de.doubleslash.keeptime.common.ScreenPosHelper;
-import de.doubleslash.keeptime.common.StyleUtils;
 import de.doubleslash.keeptime.common.time.Interval;
 import de.doubleslash.keeptime.controller.Controller;
 import de.doubleslash.keeptime.exceptions.FXMLLoaderException;
 import de.doubleslash.keeptime.model.Model;
 import de.doubleslash.keeptime.model.Project;
-import de.jensd.fx.glyphs.fontawesome.FontAwesomeIconView;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
-import javafx.beans.property.BooleanProperty;
-import javafx.beans.property.LongProperty;
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleBooleanProperty;
-import javafx.beans.property.SimpleLongProperty;
-import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.*;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
@@ -54,520 +33,570 @@ import javafx.embed.swing.SwingFXUtils;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.geometry.Bounds;
+import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.SnapshotParameters;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
-import javafx.scene.control.Button;
-import javafx.scene.control.ButtonType;
-import javafx.scene.control.Dialog;
-import javafx.scene.control.Label;
-import javafx.scene.control.ListView;
-import javafx.scene.control.TextArea;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.image.WritableImage;
 import javafx.scene.input.KeyCode;
-import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.Pane;
-import javafx.scene.layout.StackPane;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
+import javafx.scene.shape.SVGPath;
 import javafx.scene.text.TextAlignment;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+import org.w3c.dom.Document;
+import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import java.awt.image.BufferedImage;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.util.Optional;
 
 @Component
 public class ViewController {
-   private static final Logger LOG = LoggerFactory.getLogger(ViewController.class);
-   private static final String TIME_ZERO = "00:00:00";
+    public static final LongProperty activeWorkSecondsProperty = new SimpleLongProperty(0);
+    public static final ObjectProperty<Color> fontColorProperty = new SimpleObjectProperty<>();
+    private static final Logger LOG = LoggerFactory.getLogger(ViewController.class);
+    private static final String TIME_ZERO = "00:00:00";
+    private final Delta dragDelta = new Delta();
+    private final Controller controller;
+    private final Model model;
+    private final Canvas taskbarCanvas = new Canvas(32, 32);
+    private final BooleanProperty mouseHoveringProperty = new SimpleBooleanProperty(false);
+    @FXML
+    private Pane pane;
+    @FXML
+    private BorderPane borderPane;
+    @FXML
+    private ListView<Project> availableProjectsListView;
+    @FXML
+    private VBox projectsVBox;
+    @FXML
+    private Label bigTimeLabel;
+    @FXML
+    private Label allTimeLabel;
+    @FXML
+    private Label todayAllSeconds;
+    @FXML
+    private Label currentProjectLabel;
+    @FXML
+    private Button minimizeButton;
+    @FXML
+    private Button closeButton;
+    @FXML
+    private Button addNewProjectButton;
+    @FXML
+    private TextField searchTextField;
+    @FXML
+    private Button settingsButton;
+    @FXML
+    private Button calendarButton;
+    @FXML
+    private TextArea textArea;
+    @FXML
+    private Canvas canvas;
+    @FXML
+    private Button calendarIcon;
+    @FXML
+    private Button settingsIcon;
+    @FXML
+    private Button minimizeIcon;
+    @FXML
+    private Button closeIcon;
+    private ColorTimeLine mainColorTimeLine;
+    private Stage mainStage;
+    private Stage reportStage;
+    private ReportController reportController;
+    private Stage settingsStage;
+    private SettingsController settingsController;
+    private ProjectsListViewController projectsListViewController;
 
-   @FXML
-   private Pane pane;
-   @FXML
-   private BorderPane borderPane;
+    @Autowired
+    public ViewController(final Model model, final Controller controller) {
+        this.model = model;
+        this.controller = controller;
+    }
 
-   @FXML
-   private ListView<Project> availableProjectsListView;
+    @FXML
+    private void initialize() throws IOException, URISyntaxException, ParserConfigurationException, SAXException {
 
-   @FXML
-   private VBox projectsVBox;
+        availableProjectsListView.setFixedCellSize(13);
 
-   @FXML
-   private Label bigTimeLabel;
-   @FXML
-   private Label allTimeLabel;
-   @FXML
-   private Label todayAllSeconds;
+        setUpTime();
 
-   @FXML
-   private Label currentProjectLabel;
+        setUpTextArea();
 
-   @FXML
-   private Button minimizeButton;
-   @FXML
-   private Button closeButton;
+        // reposition window if projects are hidden (as anchor is top left)
+        mouseHoveringProperty.addListener((a, b, c) -> {
+            if (!model.hideProjectsOnMouseExit.get()) {
+                setProjectListVisible(true);
+                return;
+            }
 
-   @FXML
-   private Button addNewProjectButton;
+            setProjectListVisible(c);
+        });
 
-   @FXML
-   private TextField searchTextField;
+        minimizeButton.setOnAction(ae -> mainStage.setIconified(true));
+        minimizeButton.textFillProperty().bind(fontColorProperty);
+        closeButton.setOnAction(ae -> mainStage.close());
+        closeButton.textFillProperty().bind(fontColorProperty);
 
-   @FXML
-   private Button settingsButton;
-   @FXML
-   private Button calendarButton;
+        addNewProjectButton.textFillProperty().bind(fontColorProperty);
 
-   @FXML
-   private TextArea textArea;
+        settingsButton.setOnAction(ae -> settingsClicked());
 
-   @FXML
-   private Canvas canvas;
+        calendarButton.setOnAction(ae -> calendarClicked());
 
-   @FXML
-   private FontAwesomeIconView calendarIcon;
 
-   @FXML
-   private FontAwesomeIconView settingsIcon;
+        calendarButton.textFillProperty().bind(fontColorProperty);
+        calendarButton.setMaxSize(30, 30);
+        calendarButton.setMinSize(30, 30);
+        calendarButton.setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
+        calendarButton.setGraphic(getNode(getSvgPathWithXMl(RESOURCE.SVG_CALENDAR_DAYS_ICON)));
 
-   @FXML
-   private FontAwesomeIconView minimizeIcon;
+        closeButton.textFillProperty().bind(fontColorProperty);
+        closeButton.setMaxSize(30, 30);
+        closeButton.setMinSize(30, 30);
+        closeButton.setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
+        closeButton.setGraphic(getNode(getSvgPathWithXMl(RESOURCE.SVG_CLOSE_ICON)));
 
-   @FXML
-   private FontAwesomeIconView closeIcon;
+        settingsButton.textFillProperty().bind(fontColorProperty);
+        settingsButton.setMaxSize(30, 30);
+        settingsButton.setMinSize(30, 30);
+        settingsButton.setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
+        settingsButton.setGraphic(getNode(getSvgPathWithXMl(RESOURCE.SVG_SETTINGS_ICON)));
 
-   private ColorTimeLine mainColorTimeLine;
+        minimizeButton.textFillProperty().bind(fontColorProperty);
+        minimizeButton.setMaxSize(30, 30);
+        minimizeButton.setMinSize(30, 30);
+        minimizeButton.setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
+        minimizeButton.setGraphic(getNode(getSvgPathWithXMl(RESOURCE.SVG_MINUS_ICON)));
 
-   private class Delta {
-      double x;
-      double y;
-   }
-
-   private final Delta dragDelta = new Delta();
-
-   private Stage mainStage;
-
-   private final Controller controller;
-
-   private final Model model;
-
-   private final Canvas taskbarCanvas = new Canvas(32, 32);
-
-   private final BooleanProperty mouseHoveringProperty = new SimpleBooleanProperty(false);
-   public static final LongProperty activeWorkSecondsProperty = new SimpleLongProperty(0);
-   public static final ObjectProperty<Color> fontColorProperty = new SimpleObjectProperty<>();
-
-   private Stage reportStage;
-   private ReportController reportController;
-
-   private Stage settingsStage;
-   private SettingsController settingsController;
-
-   private ProjectsListViewController projectsListViewController;
-
-   @Autowired
-   public ViewController(final Model model, final Controller controller) {
-      this.model = model;
-      this.controller = controller;
-   }
-
-   @FXML
-   private void initialize() {
-
-      availableProjectsListView.setFixedCellSize(13);
-
-      setUpTime();
-
-      setUpTextArea();
-
-      // reposition window if projects are hidden (as anchor is top left)
-      mouseHoveringProperty.addListener((a, b, c) -> {
-         if (!model.hideProjectsOnMouseExit.get()) {
-            setProjectListVisible(true);
-            return;
-         }
-
-         setProjectListVisible(c);
-      });
-
-      minimizeButton.setOnAction(ae -> mainStage.setIconified(true));
-      minimizeButton.textFillProperty().bind(fontColorProperty);
-      closeButton.setOnAction(ae -> mainStage.close());
-      closeButton.textFillProperty().bind(fontColorProperty);
-
-      addNewProjectButton.textFillProperty().bind(fontColorProperty);
-
-      settingsButton.setOnAction(ae -> settingsClicked());
-
-      calendarButton.setOnAction(ae -> calendarClicked());
+      /*
 
       calendarIcon.fillProperty().bind(fontColorProperty);
       settingsIcon.fillProperty().bind(fontColorProperty);
       minimizeIcon.fillProperty().bind(fontColorProperty);
       closeIcon.fillProperty().bind(fontColorProperty);
+*/
 
-      final Runnable updateMainBackgroundColor = this::runUpdateMainBackgroundColor;
 
-      mouseHoveringProperty.addListener((a, b, c) -> updateMainBackgroundColor.run());
+        final Runnable updateMainBackgroundColor = this::runUpdateMainBackgroundColor;
 
-      Platform.runLater(() -> {
-         loadSubStages();
-         fontColorProperty.set(model.defaultFontColor.get());
-         fontColorProperty.bind(Bindings.createObjectBinding(() -> {
-            if (mouseHoveringProperty.get()) {
-               return model.hoverFontColor.get();
-            } else {
-               return model.defaultFontColor.get();
-            }
-         }, mouseHoveringProperty, model.defaultFontColor, model.hoverFontColor));
+        mouseHoveringProperty.addListener((a, b, c) -> updateMainBackgroundColor.run());
 
-         bigTimeLabel.textFillProperty().bind(fontColorProperty);
-         allTimeLabel.textFillProperty().bind(fontColorProperty);
-         todayAllSeconds.textFillProperty().bind(fontColorProperty);
-         currentProjectLabel.textFillProperty().bind(fontColorProperty);
+        Platform.runLater(() -> {
+            loadSubStages();
+            fontColorProperty.set(model.defaultFontColor.get());
+            fontColorProperty.bind(Bindings.createObjectBinding(() -> {
+                if (mouseHoveringProperty.get()) {
+                    return model.hoverFontColor.get();
+                } else {
+                    return model.defaultFontColor.get();
+                }
+            }, mouseHoveringProperty, model.defaultFontColor, model.hoverFontColor));
 
-         textArea.setText("");
-         textArea.requestFocus();
+            bigTimeLabel.textFillProperty().bind(fontColorProperty);
+            allTimeLabel.textFillProperty().bind(fontColorProperty);
+            todayAllSeconds.textFillProperty().bind(fontColorProperty);
+            currentProjectLabel.textFillProperty().bind(fontColorProperty);
 
-         final Runnable displayProjectRightRunnable = () -> {
-            if (model.displayProjectsRight.get()) {
-               borderPane.setLeft(null);
-               borderPane.setRight(projectsVBox);
-            } else {
-               borderPane.setRight(null);
-               borderPane.setLeft(projectsVBox);
-            }
-         };
-         model.displayProjectsRight.addListener((a, oldValue, newValue) -> displayProjectRightRunnable.run());
-         displayProjectRightRunnable.run();
-
-         // Setup textarea font color binding
-         final Runnable textAreaColorRunnable = () -> {
-            final String textAreaStyle = StyleUtils.changeStyleAttribute(textArea.getStyle(), "fx-text-fill",
-                  "rgba(" + ColorHelper.colorToCssRgba(fontColorProperty.get()) + ")");
-            textArea.setStyle(textAreaStyle);
-         };
-         fontColorProperty.addListener((a, b, c) -> textAreaColorRunnable.run());
-         textAreaColorRunnable.run();
-
-         model.activeWorkItem.addListener((a, b, c) -> {
-            updateProjectView();
             textArea.setText("");
             textArea.requestFocus();
-         });
 
-         model.defaultBackgroundColor.addListener((a, b, c) -> updateMainBackgroundColor.run());
-         model.hoverBackgroundColor.addListener((a, b, c) -> updateMainBackgroundColor.run());
-         updateMainBackgroundColor.run();
-      });
+            final Runnable displayProjectRightRunnable = () -> {
+                if (model.displayProjectsRight.get()) {
+                    borderPane.setLeft(null);
+                    borderPane.setRight(projectsVBox);
+                } else {
+                    borderPane.setRight(null);
+                    borderPane.setLeft(projectsVBox);
+                }
+            };
+            model.displayProjectsRight.addListener((a, oldValue, newValue) -> displayProjectRightRunnable.run());
+            displayProjectRightRunnable.run();
 
-      pane.setOnMouseEntered(a -> mouseHoveringProperty.set(true));
+            // Setup textarea font color binding
+            final Runnable textAreaColorRunnable = () -> {
+                final String textAreaStyle = StyleUtils.changeStyleAttribute(textArea.getStyle(), "fx-text-fill",
+                        "rgba(" + ColorHelper.colorToCssRgba(fontColorProperty.get()) + ")");
+                textArea.setStyle(textAreaStyle);
+            };
+            fontColorProperty.addListener((a, b, c) -> textAreaColorRunnable.run());
+            textAreaColorRunnable.run();
 
-      pane.setOnMouseExited(a -> mouseHoveringProperty.set(false));
+            model.activeWorkItem.addListener((a, b, c) -> {
+                updateProjectView();
+                textArea.setText("");
+                textArea.requestFocus();
+            });
 
-      // Drag stage
-      pane.setOnMousePressed(mouseEvent -> {
+            model.defaultBackgroundColor.addListener((a, b, c) -> updateMainBackgroundColor.run());
+            model.hoverBackgroundColor.addListener((a, b, c) -> updateMainBackgroundColor.run());
+            updateMainBackgroundColor.run();
+        });
 
-         // record a delta distance for the drag and drop operation.
-         dragDelta.x = mainStage.getX() - mouseEvent.getScreenX();
-         dragDelta.y = mainStage.getY() - mouseEvent.getScreenY();
-      });
+        pane.setOnMouseEntered(a -> mouseHoveringProperty.set(true));
 
-      pane.setOnMouseDragged(mouseEvent -> {
-         mainStage.setX(mouseEvent.getScreenX() + dragDelta.x);
-         mainStage.setY(mouseEvent.getScreenY() + dragDelta.y);
-      });
+        pane.setOnMouseExited(a -> mouseHoveringProperty.set(false));
 
-      bigTimeLabel.textProperty().bind(Bindings.createStringBinding(
-            () -> DateFormatter.secondsToHHMMSS(activeWorkSecondsProperty.get()), activeWorkSecondsProperty));
+        // Drag stage
+        pane.setOnMousePressed(mouseEvent -> {
 
-      // update ui each second
-      new Interval(1).registerCallBack(() -> {
-         final LocalDateTime now = LocalDateTime.now();
-         model.activeWorkItem.get().setEndTime(now); // FIXME not good to change model
+            // record a delta distance for the drag and drop operation.
+            dragDelta.x = mainStage.getX() - mouseEvent.getScreenX();
+            dragDelta.y = mainStage.getY() - mouseEvent.getScreenY();
+        });
 
-         final long currentWorkSeconds = Duration
-               .between(model.activeWorkItem.get().getStartTime(), model.activeWorkItem.get().getEndTime())
-               .getSeconds();
-         activeWorkSecondsProperty.set(currentWorkSeconds);
-         final long todayWorkingSeconds = controller.calcTodaysWorkSeconds();
-         final long todaySeconds = controller.calcTodaysSeconds();
+        pane.setOnMouseDragged(mouseEvent -> {
+            mainStage.setX(mouseEvent.getScreenX() + dragDelta.x);
+            mainStage.setY(mouseEvent.getScreenY() + dragDelta.y);
+        });
 
-         // update all ui labels
-         allTimeLabel.setText(DateFormatter.secondsToHHMMSS(todayWorkingSeconds));
-         todayAllSeconds.setText(DateFormatter.secondsToHHMMSS(todaySeconds));
+        bigTimeLabel.textProperty().bind(Bindings.createStringBinding(
+                () -> DateFormatter.secondsToHHMMSS(activeWorkSecondsProperty.get()), activeWorkSecondsProperty));
 
-         projectsListViewController.tick();
+        // update ui each second
+        new Interval(1).registerCallBack(() -> {
+            final LocalDateTime now = LocalDateTime.now();
+            model.activeWorkItem.get().setEndTime(now); // FIXME not good to change model
 
-         mainColorTimeLine.update(model.getSortedPastWorkItems(), controller.calcTodaysSeconds());
-         updateTaskbarIcon(currentWorkSeconds);
+            final long currentWorkSeconds = Duration
+                    .between(model.activeWorkItem.get().getStartTime(), model.activeWorkItem.get().getEndTime())
+                    .getSeconds();
+            activeWorkSecondsProperty.set(currentWorkSeconds);
+            final long todayWorkingSeconds = controller.calcTodaysWorkSeconds();
+            final long todaySeconds = controller.calcTodaysSeconds();
 
-      });
+            // update all ui labels
+            allTimeLabel.setText(DateFormatter.secondsToHHMMSS(todayWorkingSeconds));
+            todayAllSeconds.setText(DateFormatter.secondsToHHMMSS(todaySeconds));
 
-      mainColorTimeLine = new ColorTimeLine(canvas);
+            projectsListViewController.tick();
 
-      controller.changeProject(model.getIdleProject(), 0);
+            mainColorTimeLine.update(model.getSortedPastWorkItems(), controller.calcTodaysSeconds());
+            updateTaskbarIcon(currentWorkSeconds);
 
-      updateProjectView();
+        });
 
-   }
+        mainColorTimeLine = new ColorTimeLine(canvas);
 
-   private Dialog<Project> dialogResultConverter(final Dialog<Project> dialog,
-         final ManageProjectController manageProjectController) {
-      dialog.setResultConverter(dialogButton -> {
-         if (dialogButton == ButtonType.OK) {
-            return manageProjectController.getProjectFromUserInput();
-         }
-         return null;
-      });
-      return dialog;
-   }
+        controller.changeProject(model.getIdleProject(), 0);
 
-   private void settingsClicked() {
-      LOG.info("Settings clicked");
-      this.mainStage.setAlwaysOnTop(false);
-      settingsController.update();
-      settingsStage.show();
-   }
+        updateProjectView();
 
-   private void calendarClicked() {
-      LOG.info("Calendar clicked");
-      this.mainStage.setAlwaysOnTop(false);
-      reportStage.setAlwaysOnTop(true);
-      reportController.update();
-      reportStage.show();
-   }
+    }
 
-   private void runUpdateMainBackgroundColor() {
-      Color color = model.defaultBackgroundColor.get();
-      double opacity = 0;
-      if (mouseHoveringProperty.get()) {
-         color = model.hoverBackgroundColor.get();
-         opacity = .3;
-      }
-      String style = StyleUtils.changeStyleAttribute(pane.getStyle(), "fx-background-color",
-            "rgba(" + ColorHelper.colorToCssRgba(color) + ")");
-      style = StyleUtils.changeStyleAttribute(style, "fx-border-color",
-            "rgba(" + ColorHelper.colorToCssRgb(color) + ", " + opacity + ")");
-      pane.setStyle(style);
-   }
+  /*  public String getSvgPathWithString(RESOURCE resource) throws IOException {
 
-   private void setUpTime() {
-      bigTimeLabel.setText(TIME_ZERO);
-      allTimeLabel.setText(TIME_ZERO);
-      todayAllSeconds.setText(TIME_ZERO);
-   }
+        String path = Resources.getResource(resource).getFile();
+        BufferedReader br = new BufferedReader(new FileReader(path));
+        StringBuilder sb = new StringBuilder();
+        String line = br.readLine();
+        sb.append(line);
+        String s = sb.toString().split("path d=\"")[1];
+        String svgPath = s.split("\"")[0];
 
-   private void setUpTextArea() {
-      textArea.setWrapText(true);
-      textArea.setEditable(false);
-      textArea.editableProperty().bind(mouseHoveringProperty);
+        return svgPath;
+    }*/
 
-      textArea.textProperty().addListener((a, b, c) -> controller.setComment(textArea.getText()));
-   }
+    public String getSvgPathWithXMl(RESOURCE resource) throws ParserConfigurationException, IOException, SAXException {
 
-   private void setProjectListVisible(final boolean showProjectList) {
-      projectsVBox.setManaged(showProjectList);
-      final double beforeWidth = mainStage.getWidth();
-      mainStage.sizeToScene();
-      final double afterWidth = mainStage.getWidth();
-      projectsVBox.setVisible(showProjectList);
-      final double offset = afterWidth - beforeWidth;
-      if (!model.displayProjectsRight.get()) {
-         // we only need to move the stage if the node on the left is hidden
-         // not sure how we can prevent the jumping
-         mainStage.setX(mainStage.getX() - offset);
-      }
-   }
+        DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+        DocumentBuilder db = dbf.newDocumentBuilder();
+        Document document = db.parse(Resources.getResource(resource).getFile());
+        NodeList nodeList = document.getElementsByTagName("path");
+        String svgPath = nodeList.item(0).getAttributes().getNamedItem("d").getNodeValue();
 
-   private void loadSubStages() {
-      try {
-         // Report stage
-         final FXMLLoader fxmlLoader = createFXMLLoader(RESOURCE.FXML_REPORT);
-         fxmlLoader.setControllerFactory(model.getSpringContext()::getBean);
-         final Parent root = fxmlLoader.load();
-         root.setFocusTraversable(true);
-         root.requestFocus();
-         reportController = fxmlLoader.getController();
-         reportStage = new Stage();
-         reportStage.initModality(Modality.APPLICATION_MODAL);
-         reportController.setStage(reportStage);
-         final Scene reportScene = new Scene(root);
-         reportScene.setOnKeyPressed(ke -> {
-            if (ke.getCode() == KeyCode.ESCAPE) {
-               LOG.info("pressed ESCAPE");
-               reportStage.close();
+        return svgPath;
+    }
+
+    private Node getNode(String s) {
+        SVGPath IconSvg = new SVGPath();
+        IconSvg.setContent(s);
+        Bounds bounds = IconSvg.getBoundsInParent();
+        double scale = Math.min(20 / bounds.getWidth(), 20 / bounds.getHeight());
+        IconSvg.setScaleX(scale);
+        IconSvg.setScaleY(scale);
+        return IconSvg;
+    }
+
+    private Dialog<Project> dialogResultConverter(final Dialog<Project> dialog,
+                                                  final ManageProjectController manageProjectController) {
+        dialog.setResultConverter(dialogButton -> {
+            if (dialogButton == ButtonType.OK) {
+                return manageProjectController.getProjectFromUserInput();
             }
-         });
+            return null;
+        });
+        return dialog;
+    }
 
-         reportStage.setScene(reportScene);
-         reportStage.setTitle("Report");
-         reportStage.setResizable(false);
-         reportStage.setOnHiding(windowEvent -> {
-            reportStage.setAlwaysOnTop(false);
-            this.mainStage.setAlwaysOnTop(true);
-         });
+    private void settingsClicked() {
+        LOG.info("Settings clicked");
+        this.mainStage.setAlwaysOnTop(false);
+        settingsController.update();
+        settingsStage.show();
+    }
 
-         // Settings stage
-         final FXMLLoader fxmlLoader2 = createFXMLLoader(RESOURCE.FXML_SETTINGS);
-         fxmlLoader2.setControllerFactory(model.getSpringContext()::getBean);
-         final Parent settingsRoot = fxmlLoader2.load();
-         settingsController = fxmlLoader2.getController();
-         settingsStage = new Stage();
-         settingsController.setStage(settingsStage);
-         settingsStage.initModality(Modality.APPLICATION_MODAL);
-         settingsStage.setTitle("Settings");
-         settingsStage.setResizable(false);
+    private void calendarClicked() {
+        LOG.info("Calendar clicked");
+        this.mainStage.setAlwaysOnTop(false);
+        reportStage.setAlwaysOnTop(true);
+        reportController.update();
+        reportStage.show();
+    }
 
-         final Scene settingsScene = new Scene(settingsRoot);
-         settingsScene.setOnKeyPressed(ke -> {
-            if (ke.getCode() == KeyCode.ESCAPE) {
-               LOG.info("pressed ESCAPE");
-               settingsStage.close();
-            }
-         });
+    private void runUpdateMainBackgroundColor() {
+        Color color = model.defaultBackgroundColor.get();
+        double opacity = 0;
+        if (mouseHoveringProperty.get()) {
+            color = model.hoverBackgroundColor.get();
+            opacity = .3;
+        }
+        String style = StyleUtils.changeStyleAttribute(pane.getStyle(), "fx-background-color",
+                "rgba(" + ColorHelper.colorToCssRgba(color) + ")");
+        style = StyleUtils.changeStyleAttribute(style, "fx-border-color",
+                "rgba(" + ColorHelper.colorToCssRgb(color) + ", " + opacity + ")");
+        pane.setStyle(style);
+    }
 
-         settingsStage.setScene(settingsScene);
-         settingsStage.setOnHiding(e -> this.mainStage.setAlwaysOnTop(true));
-      } catch (final IOException e) {
-         LOG.error("Error while loading sub stage");
-         throw new FXMLLoaderException(e);
-      }
-   }
+    private void setUpTime() {
+        bigTimeLabel.setText(TIME_ZERO);
+        allTimeLabel.setText(TIME_ZERO);
+        todayAllSeconds.setText(TIME_ZERO);
+    }
 
-   private FXMLLoader createFXMLLoader(final RESOURCE fxmlLayout) {
-      return new FXMLLoader(Resources.getResource(fxmlLayout));
-   }
+    private void setUpTextArea() {
+        textArea.setWrapText(true);
+        textArea.setEditable(false);
+        textArea.editableProperty().bind(mouseHoveringProperty);
 
-   private Dialog<Project> setUpDialogProject(final String title, final String headerText) {
-      final Dialog<Project> dialog = new Dialog<>();
-      dialog.setTitle(title);
-      dialog.setHeaderText(headerText);
-      dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
-      setUpAddNewProjectGridPane(dialog);
+        textArea.textProperty().addListener((a, b, c) -> controller.setComment(textArea.getText()));
+    }
 
-      // TODO disable OK button if no name is set
-      return dialog;
-   }
+    private void setProjectListVisible(final boolean showProjectList) {
+        projectsVBox.setManaged(showProjectList);
+        final double beforeWidth = mainStage.getWidth();
+        mainStage.sizeToScene();
+        final double afterWidth = mainStage.getWidth();
+        projectsVBox.setVisible(showProjectList);
+        final double offset = afterWidth - beforeWidth;
+        if (!model.displayProjectsRight.get()) {
+            // we only need to move the stage if the node on the left is hidden
+            // not sure how we can prevent the jumping
+            mainStage.setX(mainStage.getX() - offset);
+        }
+    }
 
-   private GridPane setUpAddNewProjectGridPane(final Dialog<Project> dialog) {
-      GridPane grid;
-      final FXMLLoader loader = new FXMLLoader(Resources.getResource(RESOURCE.FXML_MANAGE_PROJECT));
-      loader.setControllerFactory(model.getSpringContext()::getBean);
-      try {
-         grid = loader.load();
-      } catch (final IOException e) {
-         throw new FXMLLoaderException(String.format("Error while loading '%s'.", RESOURCE.FXML_MANAGE_PROJECT), e);
-      }
+    private void loadSubStages() {
+        try {
+            // Report stage
+            final FXMLLoader fxmlLoader = createFXMLLoader(RESOURCE.FXML_REPORT);
+            fxmlLoader.setControllerFactory(model.getSpringContext()::getBean);
+            final Parent root = fxmlLoader.load();
+            root.setFocusTraversable(true);
+            root.requestFocus();
+            reportController = fxmlLoader.getController();
+            reportStage = new Stage();
+            reportStage.initModality(Modality.APPLICATION_MODAL);
+            reportController.setStage(reportStage);
+            final Scene reportScene = new Scene(root);
+            reportScene.setOnKeyPressed(ke -> {
+                if (ke.getCode() == KeyCode.ESCAPE) {
+                    LOG.info("pressed ESCAPE");
+                    reportStage.close();
+                }
+            });
 
-      dialog.getDialogPane().setContent(grid);
+            reportStage.setScene(reportScene);
+            reportStage.setTitle("Report");
+            reportStage.setResizable(false);
+            reportStage.setOnHiding(windowEvent -> {
+                reportStage.setAlwaysOnTop(false);
+                this.mainStage.setAlwaysOnTop(true);
+            });
 
-      final ManageProjectController manageProjectController = loader.getController();
+            // Settings stage
+            final FXMLLoader fxmlLoader2 = createFXMLLoader(RESOURCE.FXML_SETTINGS);
+            fxmlLoader2.setControllerFactory(model.getSpringContext()::getBean);
+            final Parent settingsRoot = fxmlLoader2.load();
+            settingsController = fxmlLoader2.getController();
+            settingsStage = new Stage();
+            settingsController.setStage(settingsStage);
+            settingsStage.initModality(Modality.APPLICATION_MODAL);
+            settingsStage.setTitle("Settings");
+            settingsStage.setResizable(false);
 
-      dialogResultConverter(dialog, manageProjectController);
+            final Scene settingsScene = new Scene(settingsRoot);
+            settingsScene.setOnKeyPressed(ke -> {
+                if (ke.getCode() == KeyCode.ESCAPE) {
+                    LOG.info("pressed ESCAPE");
+                    settingsStage.close();
+                }
+            });
 
-      return grid;
-   }
+            settingsStage.setScene(settingsScene);
+            settingsStage.setOnHiding(e -> this.mainStage.setAlwaysOnTop(true));
+        } catch (final IOException e) {
+            LOG.error("Error while loading sub stage");
+            throw new FXMLLoaderException(e);
+        }
+    }
 
-   private void updateTaskbarIcon(final long currentWorkSeconds) {
-      final GraphicsContext gcIcon = taskbarCanvas.getGraphicsContext2D();
+    private FXMLLoader createFXMLLoader(final RESOURCE fxmlLayout) {
+        return new FXMLLoader(Resources.getResource(fxmlLayout));
+    }
 
-      gcIcon.clearRect(0, 0, taskbarCanvas.getWidth(), taskbarCanvas.getHeight());
-      gcIcon.setFill(model.activeWorkItem.get().getProject().getColor());
-      gcIcon.fillRect(1, 27, 31, 5);
+    private Dialog<Project> setUpDialogProject(final String title, final String headerText) {
+        final Dialog<Project> dialog = new Dialog<>();
+        dialog.setTitle(title);
+        dialog.setHeaderText(headerText);
+        dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
+        setUpAddNewProjectGridPane(dialog);
 
-      gcIcon.setStroke(model.taskBarColor.get());
-      gcIcon.setTextAlign(TextAlignment.CENTER);
-      gcIcon.strokeText(DateFormatter.secondsToHHMMSS(currentWorkSeconds).replaceFirst(":", ":\n"),
-            Math.round(taskbarCanvas.getWidth() / 2), Math.round(taskbarCanvas.getHeight() / 2) - 5.0);
+        // TODO disable OK button if no name is set
+        return dialog;
+    }
 
-      final SnapshotParameters snapshotParameters = new SnapshotParameters();
-      snapshotParameters.setFill(Color.TRANSPARENT);
-      final WritableImage image = taskbarCanvas.snapshot(snapshotParameters, null);
+    private GridPane setUpAddNewProjectGridPane(final Dialog<Project> dialog) {
+        GridPane grid;
+        final FXMLLoader loader = new FXMLLoader(Resources.getResource(RESOURCE.FXML_MANAGE_PROJECT));
+        loader.setControllerFactory(model.getSpringContext()::getBean);
+        try {
+            grid = loader.load();
+        } catch (final IOException e) {
+            throw new FXMLLoaderException(String.format("Error while loading '%s'.", RESOURCE.FXML_MANAGE_PROJECT), e);
+        }
 
-      final StackPane layout = new StackPane();
-      layout.getChildren().addAll(new ImageView(image));
+        dialog.getDialogPane().setContent(grid);
 
-      final BufferedImage bi = SwingFXUtils.fromFXImage(image, null);
-      final Image icon = SwingFXUtils.toFXImage(bi, null);
+        final ManageProjectController manageProjectController = loader.getController();
 
-      final ObservableList<Image> icons = mainStage.getIcons();
-      icons.addAll(icon);
-      if (icons.size() > 1) {
-         icons.remove(0);
-      }
-   }
+        dialogResultConverter(dialog, manageProjectController);
 
-   private void updateProjectView() {
-      final Project project = model.activeWorkItem.get().getProject();
-      currentProjectLabel.setText(project.getName());
-      currentProjectLabel.setUnderline(project.isWork());
-      final Circle circle = new Circle(4);
-      circle.setFill(project.getColor());
-      currentProjectLabel.setGraphic(circle);
-   }
+        return grid;
+    }
 
-   public void setStage(final Stage primaryStage) {
-      this.mainStage = primaryStage;
-      this.projectsListViewController = new ProjectsListViewController(model, controller, mainStage,
-            availableProjectsListView, searchTextField, false);
-      setupStagePositioning();
-   }
+    private void updateTaskbarIcon(final long currentWorkSeconds) {
+        final GraphicsContext gcIcon = taskbarCanvas.getGraphicsContext2D();
 
-   @FXML
-   public void addNewProject(final ActionEvent ae) {
-      LOG.info("Add new project clicked");
-      // TODO somewhat duplicate dialog of create and edit
-      final Dialog<Project> dialog = setUpDialogProject("Create new project", "Create a new project");
+        gcIcon.clearRect(0, 0, taskbarCanvas.getWidth(), taskbarCanvas.getHeight());
+        gcIcon.setFill(model.activeWorkItem.get().getProject().getColor());
+        gcIcon.fillRect(1, 27, 31, 5);
 
-      mainStage.setAlwaysOnTop(false);
-      final Optional<Project> result = dialog.showAndWait();
-      mainStage.setAlwaysOnTop(true);
+        gcIcon.setStroke(model.taskBarColor.get());
+        gcIcon.setTextAlign(TextAlignment.CENTER);
+        gcIcon.strokeText(DateFormatter.secondsToHHMMSS(currentWorkSeconds).replaceFirst(":", ":\n"),
+                Math.round(taskbarCanvas.getWidth() / 2), Math.round(taskbarCanvas.getHeight() / 2) - 5.0);
 
-      result.ifPresent(project -> controller.addNewProject(project));
-   }
+        final SnapshotParameters snapshotParameters = new SnapshotParameters();
+        snapshotParameters.setFill(Color.TRANSPARENT);
+        final WritableImage image = taskbarCanvas.snapshot(snapshotParameters, null);
 
-   private void setupStagePositioning() {
-      final ScreenPosHelper positionHelper = new ScreenPosHelper(model.screenSettings.screenHash.get(),
-            model.screenSettings.proportionalX.get(), model.screenSettings.proportionalY.get());
-      positionHelper.resetPositionIfInvalid();
+        final StackPane layout = new StackPane();
+        layout.getChildren().addAll(new ImageView(image));
 
-      // set stage to saved Position
-      if (model.screenSettings.saveWindowPosition.get()) {
-         mainStage.setX(positionHelper.getAbsoluteX());
-         mainStage.setY(positionHelper.getAbsoluteY());
-      }
+        final BufferedImage bi = SwingFXUtils.fromFXImage(image, null);
+        final Image icon = SwingFXUtils.toFXImage(bi, null);
 
-      // add listeners to record Windowpositionchange
-      final ChangeListener<Number> positionChangeListener = (final ObservableValue<? extends Number> observable,
-            final Number oldValue, final Number newValue) -> {
-         savePosition();
-      };
+        final ObservableList<Image> icons = mainStage.getIcons();
+        icons.addAll(icon);
+        if (icons.size() > 1) {
+            icons.remove(0);
+        }
+    }
 
-      mainStage.xProperty().addListener(positionChangeListener);
-      mainStage.yProperty().addListener(positionChangeListener);
-   }
+    private void updateProjectView() {
+        final Project project = model.activeWorkItem.get().getProject();
+        currentProjectLabel.setText(project.getName());
+        currentProjectLabel.setUnderline(project.isWork());
+        final Circle circle = new Circle(4);
+        circle.setFill(project.getColor());
+        currentProjectLabel.setGraphic(circle);
+    }
 
-   public void savePosition() {
-      // don't save if option disabled
-      if (!model.screenSettings.saveWindowPosition.get()) {
-         return;
-      }
+    public void setStage(final Stage primaryStage) {
+        this.mainStage = primaryStage;
+        this.projectsListViewController = new ProjectsListViewController(model, controller, mainStage,
+                availableProjectsListView, searchTextField, false);
+        setupStagePositioning();
+    }
 
-      LOG.debug("Stage position changed '{}'/'{}'.", mainStage.xProperty().doubleValue(),
-            mainStage.yProperty().doubleValue());
+    @FXML
+    public void addNewProject(final ActionEvent ae) {
+        LOG.info("Add new project clicked");
+        // TODO somewhat duplicate dialog of create and edit
+        final Dialog<Project> dialog = setUpDialogProject("Create new project", "Create a new project");
 
-      final ScreenPosHelper positionHelper = new ScreenPosHelper(mainStage.xProperty().doubleValue(),
-            mainStage.yProperty().doubleValue());
-      model.screenSettings.screenHash.set(positionHelper.getScreenHash());
-      model.screenSettings.proportionalX.set(positionHelper.getProportionalX());
-      model.screenSettings.proportionalY.set(positionHelper.getProportionalY());
+        mainStage.setAlwaysOnTop(false);
+        final Optional<Project> result = dialog.showAndWait();
+        mainStage.setAlwaysOnTop(true);
 
-   }
+        result.ifPresent(project -> controller.addNewProject(project));
+    }
+
+    private void setupStagePositioning() {
+        final ScreenPosHelper positionHelper = new ScreenPosHelper(model.screenSettings.screenHash.get(),
+                model.screenSettings.proportionalX.get(), model.screenSettings.proportionalY.get());
+        positionHelper.resetPositionIfInvalid();
+
+        // set stage to saved Position
+        if (model.screenSettings.saveWindowPosition.get()) {
+            mainStage.setX(positionHelper.getAbsoluteX());
+            mainStage.setY(positionHelper.getAbsoluteY());
+        }
+
+        // add listeners to record Windowpositionchange
+        final ChangeListener<Number> positionChangeListener = (final ObservableValue<? extends Number> observable,
+                                                               final Number oldValue, final Number newValue) -> {
+            savePosition();
+        };
+
+        mainStage.xProperty().addListener(positionChangeListener);
+        mainStage.yProperty().addListener(positionChangeListener);
+    }
+
+    public void savePosition() {
+        // don't save if option disabled
+        if (!model.screenSettings.saveWindowPosition.get()) {
+            return;
+        }
+
+        LOG.debug("Stage position changed '{}'/'{}'.", mainStage.xProperty().doubleValue(),
+                mainStage.yProperty().doubleValue());
+
+        final ScreenPosHelper positionHelper = new ScreenPosHelper(mainStage.xProperty().doubleValue(),
+                mainStage.yProperty().doubleValue());
+        model.screenSettings.screenHash.set(positionHelper.getScreenHash());
+        model.screenSettings.proportionalX.set(positionHelper.getProportionalX());
+        model.screenSettings.proportionalY.set(positionHelper.getProportionalY());
+
+    }
+
+    private class Delta {
+        double x;
+        double y;
+    }
 
 }

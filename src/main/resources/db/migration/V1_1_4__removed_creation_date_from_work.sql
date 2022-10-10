@@ -1,2 +1,3 @@
 ALTER TABLE work
-  DROP COLUMN creation_date;
+DROP
+COLUMN creation_date;

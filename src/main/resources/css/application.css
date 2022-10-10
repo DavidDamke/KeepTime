@@ -1,12 +1,12 @@
 .text-area, .text-field {
-	-fx-text-fill: rgba(1,1,1,.5);
-    -fx-background-color: rgba(0,0,0,0);
-	-fx-border-color: rgba(0,0,0,0);
+    -fx-text-fill: rgba(1, 1, 1, .5);
+    -fx-background-color: rgba(0, 0, 0, 0);
+    -fx-border-color: rgba(0, 0, 0, 0);
 }
 
 .text-area:hover, .text-field:hover {
-	-fx-text-fill: rgba(1,1,1,1);
-	-fx-border-color: rgba(54,143,179,.3);
+    -fx-text-fill: rgba(1, 1, 1, 1);
+    -fx-border-color: rgba(54, 143, 179, .3);
 }
 
 .text-field {
@@ -20,12 +20,12 @@
     -fx-background-color: transparent;
 }
 
-.text-area .scroll-pane .viewport{
+.text-area .scroll-pane .viewport {
     -fx-background-color: transparent;
 }
 
 
-.text-area .scroll-pane .content{
+.text-area .scroll-pane .content {
     -fx-background-color: transparent;
 }
 
@@ -38,22 +38,25 @@
 }
 
 .scroll-pane > .viewport {
-   -fx-background-color: transparent;
+    -fx-background-color: transparent;
 }
 
 .scroll-pane {
-   -fx-background-color: transparent;
+    -fx-background-color: transparent;
 }
 
 .button {
     -fx-background-color: transparent;
 }
+
 .button:hover {
-    -fx-background-color: rgba(54,143,179,.3);
+    -fx-background-color: rgba(54, 143, 179, .3);
 }
+
 .button:focused {
     -fx-background-color: transparent;
 }
+
 .button:pressed {
     -fx-background-color: transparent;
 }
@@ -62,7 +65,7 @@
 .list-view .scroll-bar:horizontal .decrement-arrow,
 .list-view .scroll-bar:horizontal .increment-button,
 .list-view .scroll-bar:horizontal .decrement-button {
-    -fx-padding:0;
+    -fx-padding: 0;
 }
 
 .list-cell {
@@ -71,7 +74,7 @@
 }
 
 .list-cell:selected {
-	-fx-background-color: rgba(0,0,0,0.2)
+    -fx-background-color: rgba(0, 0, 0, 0.2)
 }
 
 .list-view {
@@ -79,16 +82,16 @@
 }
 
 .list-view .scroll-bar:vertical {
-	-fx-background-color: transparent;
+    -fx-background-color: transparent;
 }
 
 .list-view .scroll-bar:vertical .thumb,
 .list-view .scroll-bar:vertical .increment-arrow,
 .list-view .scroll-bar:vertical .decrement-arrow {
-	-fx-opacity: 0.2;
+    -fx-opacity: 0.2;
 }
 
 .list-view .scroll-bar:vertical .increment-button:hover,
 .list-view .scroll-bar:vertical .decrement-button:hover {
-	-fx-background-color: transparent;
+    -fx-background-color: transparent;
 }
