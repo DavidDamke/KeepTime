@@ -67,6 +67,7 @@ import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URISyntaxException;
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -321,13 +322,16 @@ public class ViewController {
     }*/
 
     public String getSvgPathWithXMl(RESOURCE resource) throws ParserConfigurationException, IOException, SAXException {
-
+        String svgPath;
+        Document document;
         DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
         DocumentBuilder db = dbf.newDocumentBuilder();
-        Document document = db.parse(Resources.getResource(resource).getFile());
-        NodeList nodeList = document.getElementsByTagName("path");
-        String svgPath = nodeList.item(0).getAttributes().getNamedItem("d").getNodeValue();
 
+        try(InputStream inputStream = Resources.getResource(resource).openStream()) {
+            document = db.parse(inputStream);
+            NodeList nodeList = document.getElementsByTagName("path");
+            svgPath = nodeList.item(0).getAttributes().getNamedItem("d").getNodeValue();
+        }
         return svgPath;
     }
 
