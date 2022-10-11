@@ -192,10 +192,6 @@ public class ViewController {
       minimizeButton.setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
       minimizeButton.setGraphic(getNode(getSvgPathWithXMl(RESOURCE.SVG_MINUS_ICON)));
 
-      /*
-       * calendarIcon.fillProperty().bind(fontColorProperty); settingsIcon.fillProperty().bind(fontColorProperty);
-       * minimizeIcon.fillProperty().bind(fontColorProperty); closeIcon.fillProperty().bind(fontColorProperty);
-       */
 
       final Runnable updateMainBackgroundColor = this::runUpdateMainBackgroundColor;
 
@@ -303,13 +299,6 @@ public class ViewController {
       updateProjectView();
 
    }
-
-   /*
-    * public String getSvgPathWithString(RESOURCE resource) throws IOException { String path =
-    * Resources.getResource(resource).getFile(); BufferedReader br = new BufferedReader(new FileReader(path));
-    * StringBuilder sb = new StringBuilder(); String line = br.readLine(); sb.append(line); String s =
-    * sb.toString().split("path d=\"")[1]; String svgPath = s.split("\"")[0]; return svgPath; }
-    */
 
    public String getSvgPathWithXMl(RESOURCE resource) throws ParserConfigurationException, IOException, SAXException {
       String svgPath;
