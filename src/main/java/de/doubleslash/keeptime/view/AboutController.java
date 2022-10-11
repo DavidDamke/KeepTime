@@ -70,10 +70,10 @@ public class AboutController {
 
    private final ApplicationProperties applicationProperties;
 
-   public AboutController (ApplicationProperties applicationProperties) {
-	   this.applicationProperties = applicationProperties;
+   public AboutController(ApplicationProperties applicationProperties) {
+      this.applicationProperties = applicationProperties;
    }
-   
+
    @FXML
    public void initialize() {
       LOG.debug("set version label");

@@ -93,8 +93,8 @@ public class Controller {
 
       currentWork.setEndTime(workEnd);
 
-      final String time = DateFormatter
-            .secondsToHHMMSS(Duration.between(currentWork.getStartTime(), currentWork.getEndTime()).getSeconds());
+      final String time = DateFormatter.secondsToHHMMSS(
+            Duration.between(currentWork.getStartTime(), currentWork.getEndTime()).getSeconds());
 
       LOG.info("Saving Work from '{}' to '{}' ({}) on project '{}' with notes '{}'", currentWork.getStartTime(),
             currentWork.getEndTime(), time, currentWork.getProject().getName(), currentWork.getNotes());

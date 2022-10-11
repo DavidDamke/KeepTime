@@ -69,8 +69,7 @@ public class Settings {
 
    private boolean remindIfNotesAreEmpty;
 
-   public Settings() {
-   }
+   public Settings() {}
 
    public Settings(final Color hoverBackgroundColor, final Color hoverFontColor, final Color defaultBackgroundColor,
          final Color defaultFontColor, final Color taskBarColor, final boolean useHotkey,

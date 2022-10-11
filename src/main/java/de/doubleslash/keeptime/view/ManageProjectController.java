@@ -65,8 +65,8 @@ public class ManageProjectController {
    @FXML
    private void initialize() {
       final int availableProjectAmount = model.getAllProjects().size();
-      sortIndexSpinner
-            .setValueFactory(new IntegerSpinnerValueFactory(0, availableProjectAmount, availableProjectAmount));
+      sortIndexSpinner.setValueFactory(
+            new IntegerSpinnerValueFactory(0, availableProjectAmount, availableProjectAmount));
       sortIndexSpinner.getValueFactory().setValue(model.getAvailableProjects().size());
    }
 

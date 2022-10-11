@@ -43,8 +43,7 @@ public class Work {
    @Lob
    private String notes;
 
-   public Work() {
-   }
+   public Work() {}
 
    public Work(final LocalDateTime startTime, final LocalDateTime endTime, final Project project, final String notes) {
       super();

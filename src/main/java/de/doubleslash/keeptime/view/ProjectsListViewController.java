@@ -157,8 +157,12 @@ public class ProjectsListViewController {
          final Project p = entry.getKey();
          final Label label = entry.getValue();
 
-         final long seconds = model.getPastWorkItems().stream().filter(work -> work.getProject().getId() == p.getId())
-               .mapToLong(work -> Duration.between(work.getStartTime(), work.getEndTime()).getSeconds()).sum();
+         final long seconds = model.getPastWorkItems()
+                                   .stream()
+                                   .filter(work -> work.getProject().getId() == p.getId())
+                                   .mapToLong(
+                                         work -> Duration.between(work.getStartTime(), work.getEndTime()).getSeconds())
+                                   .sum();
          label.setText(DateFormatter.secondsToHHMMSS(seconds));
       }
    }
