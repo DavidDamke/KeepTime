@@ -25,13 +25,17 @@ jobs:
       - name: Build with Maven
         run: mvn -B package --file pom.xml
       - name: Analyze with SonarCloud
-        uses: sonarsource/sonarcloud-github-action@master
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}  #Added new Repository Secret in GitHub
-        with:
-          args:
-            -Dsonar.organization=daviddamke
-            -Dsonar.projectKey=DavidDamke_KeepTime
+        run : org.sonarsource.scanner.maven:sonar
+
+
+
+       # uses: sonarsource/sonarcloud-github-action@master
+        #env:
+       #   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        #  SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}  #Added new Repository Secret in GitHub
+      #  with:
+        #  args:
+        #    -Dsonar.organization=daviddamke
+          #  -Dsonar.projectKey=DavidDamke_KeepTime
 
 
