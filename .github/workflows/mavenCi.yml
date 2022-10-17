@@ -31,5 +31,5 @@ jobs:
       #    args:
        #     -Dsonar.organization=daviddamke
        #     -Dsonar.projectKey=DavidDamke_KeepTime
-      - name: Build with Maven
-        run:  mvn -B clean verify sonar:sonar --update-snapshots package
+      - name: Build Maven and Analyze with SonarCloud
+        run:  mvn -B clean verify org.sonarsource.scanner.maven:sonar-maven-plugin:<version>:sonar --update-snapshots package
