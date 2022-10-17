@@ -22,7 +22,7 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}  #Added new Repository Secret in GitHub
         with:
           args:
-            -Dsonar.projectKey=Keeptime
+            -Dsonar.projectKey=KeepTime
             -Dsonar.organization=DavidDamke
       - uses: actions/checkout@v3
       - name: Set up JDK 1.8
