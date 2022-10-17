@@ -32,4 +32,4 @@ jobs:
        #     -Dsonar.organization=daviddamke
        #     -Dsonar.projectKey=DavidDamke_KeepTime
       - name: Build with Maven
-        run:  mvn -B --batch-mode clean verify org.sonarsource.scanner.maven:sonar --update-snapshots package
+        run:  mvn -B clean verify sonar:sonar --update-snapshots package
