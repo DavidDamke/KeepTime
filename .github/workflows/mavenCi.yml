@@ -24,8 +24,9 @@ jobs:
            distribution: 'corretto'
            cache: maven
       - name: Build
-        run: mvn -B clean verify  package --file pom.xml
-
+        run: | 
+            mvn -B clean verify  package --file pom.xml
+            mvn clean org.jacoco:jacoco-maven-plugin:prepare-agent
     # export JAVA_HOME=%PROGRAMFILES%\%AMAZONCORRETTO%\jdk11.0.16_9
   job2:
     needs: job1
@@ -43,8 +44,10 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}  #Added new Repository Secret in GitHub
-        run: | 
-            mvn sonar:sonar -Pcoverage
-            mvn sonar:sonar -Dsonar.host.url="https://sonarcloud.io" -Dsonar.organization=daviddamke -Dsonar.projectKey=DavidDamke_KeepTime -X -Dsonar.java.binaries=.
+        run: mvn sonar:sonar -Pcoverage
+           -Dsonar.host.url="https://sonarcloud.io" 
+           -Dsonar.organization=daviddamke 
+           -Dsonar.projectKey=DavidDamke_KeepTime -X
+           -Dsonar.java.binaries=.
 
 
