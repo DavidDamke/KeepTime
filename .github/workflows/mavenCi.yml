@@ -47,5 +47,7 @@ jobs:
            -Dsonar.host.url="https://sonarcloud.io" 
            -Dsonar.organization=daviddamke 
            -Dsonar.projectKey=DavidDamke_KeepTime -X
-           -Dsonar.java.binaries=./target
+           -Dsonar.sources=.
+           -Dsonar.tests=.
+        # -Dsonar.java.binaries=./target
 
