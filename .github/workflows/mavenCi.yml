@@ -12,9 +12,8 @@ on:
 
 jobs:
   job1:
-    build:
 
-      runs-on: ubuntu-latest
+    runs-on: ubuntu-latest
 
     steps:
         - uses: actions/checkout@v3
@@ -32,9 +31,8 @@ jobs:
 
     # export JAVA_HOME=%PROGRAMFILES%\%AMAZONCORRETTO%\jdk11.0.16_9
   job2:
-    build:
 
-      runs-on: ubuntu-latest
+    runs-on: ubuntu-latest
 
     steps:
         - uses: actions/checkout@v3
