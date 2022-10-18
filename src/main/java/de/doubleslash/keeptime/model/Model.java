@@ -37,7 +37,7 @@ public class Model {
    private ProjectRepository projectRepository;
    private WorkRepository workRepository;
    private SettingsRepository settingsRepository;
-   //Test
+
    @Autowired
    public Model(final ProjectRepository projectRepository, final WorkRepository workRepository,
          final SettingsRepository settingsRepository) {
