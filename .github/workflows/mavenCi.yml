@@ -29,5 +29,5 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}  #Added new Repository Secret in GitHub
         run: |
             mvn -B clean verify  package --file pom.xml
-            export JAVA_HOME="C:/Program Files/Amazon Corretto/jdk11.0.16_9"
+            export JAVA_HOME=C:\Program Files\Amazon Corretto\jdk11.0.16_9
             mvn sonar:sonar -Dsonar.host.url="https://sonarcloud.io" -Dsonar.organization=daviddamke -Dsonar.projectKey=DavidDamke_KeepTime -X
