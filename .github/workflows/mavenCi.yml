@@ -28,7 +28,7 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}  #Added new Repository Secret in GitHub
         run: |
             mvn -B clean verify  package --file pom.xml
-            export JAVA_HOME=/path/to/java11
+            export JAVA_HOME=C:\Users\ddamke\Documents\lib\javafx-sdk-11\lib\javafx.base.jar
             mvn sonar:sonar-Dsonar.host.url=https://sonarcloud.io-Dsonar.organization=daviddamke-Dsonar.projectKey=DavidDamke_KeepTime
 
 
