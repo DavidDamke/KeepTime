@@ -27,6 +27,8 @@ jobs:
         run: | 
             mvn -B clean verify  package --file pom.xml
             mvn clean org.jacoco:jacoco-maven-plugin:prepare-agent
+            mvn clean org.jacoco:jacoco-maven-plugin:report
+
     # export JAVA_HOME=%PROGRAMFILES%\%AMAZONCORRETTO%\jdk11.0.16_9
   job2:
     needs: job1
