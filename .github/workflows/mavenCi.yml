@@ -30,4 +30,5 @@ jobs:
         run: |
             mvn -B clean verify  package --file pom.xml
             export JAVA_HOME=%PROGRAMFILES%\%AMAZONCORRETTO%\jdk11.0.16_9
+            export PATH= "%PATH%;%JAVA_HOME%\bin"
             mvn sonar:sonar -Dsonar.host.url="https://sonarcloud.io" -Dsonar.organization=daviddamke -Dsonar.projectKey=DavidDamke_KeepTime -X
