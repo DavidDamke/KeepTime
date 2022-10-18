@@ -24,8 +24,9 @@ jobs:
            distribution: 'corretto'
            cache: maven
       - name: Build
-        run:   mvn -B clean verify  package --file pom.xml
-
+        run: | 
+            mvn -B clean verify  package --file pom.xml
+            mvn jacoco:report
 
     # export JAVA_HOME=%PROGRAMFILES%\%AMAZONCORRETTO%\jdk11.0.16_9
   job2:
