@@ -48,4 +48,5 @@ jobs:
            -Dsonar.organization=daviddamke 
            -Dsonar.projectKey=DavidDamke_KeepTime -X
            -Dsonar.java.binaries=./target
+           -Dsonar.tests=./target
 
