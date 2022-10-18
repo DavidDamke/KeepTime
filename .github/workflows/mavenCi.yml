@@ -31,7 +31,7 @@ jobs:
 
     # export JAVA_HOME=%PROGRAMFILES%\%AMAZONCORRETTO%\jdk11.0.16_9
   job2:
-
+    needs: job1
     runs-on: ubuntu-latest
 
     steps:
