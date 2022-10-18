@@ -24,9 +24,6 @@ jobs:
            distribution: 'corretto'
            cache: maven
       - name: Build
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}  #Added new Repository Secret in GitHub
         run: mvn -B clean verify  package --file pom.xml
 
     # export JAVA_HOME=%PROGRAMFILES%\%AMAZONCORRETTO%\jdk11.0.16_9
@@ -47,6 +44,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}  #Added new Repository Secret in GitHub
         run: mvn sonar:sonar 
+           -Dsonar.java.binaries=target
            -Dsonar.host.url="https://sonarcloud.io" 
            -Dsonar.organization=daviddamke 
            -Dsonar.projectKey=DavidDamke_KeepTime -X
