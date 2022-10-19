@@ -49,6 +49,7 @@ jobs:
            -Dsonar.projectKey=DavidDamke_KeepTime -X
            -Dsonar.java.binaries=.
            -Dsonar.qualitygate.wait=true
+           -Dsonar.coverage.exlusion=.
 
 
 
