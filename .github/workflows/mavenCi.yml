@@ -26,6 +26,13 @@ jobs:
       - name: Build
         run: | 
             mvn package -B clean verify --file pom.xml
+      - name: Download a Build Artifact
+        uses: actions/download-artifact@v3.0.0
+        with:
+          # Artifact name
+          name: "keeptime-1.2.0-SNAPSHOT.jar"
+          # Destination path
+          path: "./target"
   job2:
     needs: job1
     runs-on: ubuntu-latest
@@ -48,12 +55,6 @@ jobs:
            -Dsonar.projectKey=DavidDamke_KeepTime -X
            -Dsonar.java.binaries=.
            -Dsonar.qualitygate.wait=true
-      - name: Download a Build Artifact
-        uses: actions/download-artifact@v3.0.0
-        with:
-          # Artifact name
-          name: "keeptime-1.2.0-SNAPSHOT.jar"
-          # Destination path
-          path: "./target"
+
 
 
