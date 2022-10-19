@@ -30,9 +30,9 @@ jobs:
         uses: actions/download-artifact@v3.0.0
         with:
           # Artifact name
-          name: "keeptime-1.2.0-SNAPSHOT-bin.zip"
+
           # Destination path
-          path: "./target"
+          path: "/home/runner/work/KeepTime/KeepTime/target/keeptime-1.2.0-SNAPSHOT-bin.zip"
 
   job2:
     needs: job1
