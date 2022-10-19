@@ -27,12 +27,7 @@ jobs:
         run: | 
             mvn package -B clean verify --file pom.xml
 
-      - name: Upload Build Artifact
-        uses: actions/upload-artifact@v2
-        with:
-          # Artifact name
-          name: keeptime-1.2.0-SNAPSHOT-bin.zip
-          path: /home/runner/work/KeepTime/KeepTime/target/
+    
 
   job2:
     needs: job1
@@ -56,6 +51,11 @@ jobs:
            -Dsonar.projectKey=DavidDamke_KeepTime -X
            -Dsonar.java.binaries=.
            -Dsonar.qualitygate.wait=true
-
+      - name: Upload Build Artifact
+        uses: actions/upload-artifact@v2
+        with:
+          # Artifact name
+          name: keeptime-1.2.0-SNAPSHOT-bin.zip
+          path: /home/runner/work/KeepTime/KeepTime/target/
 
 
