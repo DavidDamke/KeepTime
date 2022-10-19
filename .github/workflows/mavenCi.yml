@@ -26,7 +26,6 @@ jobs:
       - name: Build
         run: | 
             mvn package -B clean verify --file pom.xml
-            mvn jacoco:report
   job2:
     needs: job1
     runs-on: ubuntu-latest
@@ -49,6 +48,15 @@ jobs:
            -Dsonar.projectKey=DavidDamke_KeepTime -X
            -Dsonar.java.binaries=.
            -Dsonar.qualitygate.wait=true
+
+  job3:
+    needs: job2
+    steps:
+    - name: checkout Build Zip
+      uses: Bhacaz/checkout-files@v2
+      with:
+        files: "*.jar"
+        token: ${{ secrets.GITHUB_TOKEN }}
 
 
 
