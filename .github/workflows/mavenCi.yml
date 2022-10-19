@@ -52,8 +52,8 @@ jobs:
         uses: actions/download-artifact@v3.0.0
         with:
           # Artifact name
-          name: # optional
+          name: "keeptime-1.2.0-SNAPSHOT.jar"
           # Destination path
-          path: # optional
+          path: "./target"
 
 
