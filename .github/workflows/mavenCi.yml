@@ -31,8 +31,8 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           # Artifact name
-          name: public
-          path: public
+          name: keeptime-1.2.0-SNAPSHOT-bin.zip
+          path: /home/runner/work/KeepTime/KeepTime/target/
 
   job2:
     needs: job1
