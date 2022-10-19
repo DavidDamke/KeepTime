@@ -26,13 +26,13 @@ jobs:
       - name: Build
         run: | 
             mvn package -B clean verify --file pom.xml
-      - name: Download a Build Artifact
-        uses: actions/download-artifact@v3.0.0
+
+      - name: Upload Build Artifact
+        uses: actions/upload-artifact@v2
         with:
           # Artifact name
-          name: "keeptime-1.2.0-SNAPSHOT-bin.zip"
-          # Destination path
-          path: "/home/runner/work/KeepTime/KeepTime/target/keeptime-1.2.0-SNAPSHOT-bin.zip"
+          name: public
+          path: public
 
   job2:
     needs: job1
