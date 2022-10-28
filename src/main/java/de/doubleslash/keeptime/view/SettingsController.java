@@ -18,20 +18,12 @@ package de.doubleslash.keeptime.view;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URL;
-import java.nio.charset.Charset;
 import java.nio.file.Paths;
 import java.sql.SQLException;
-import java.time.LocalDate;
-import java.util.List;
-import java.util.stream.Collectors;
-
+import de.doubleslash.keeptime.Importer;
 import de.doubleslash.keeptime.Main;
-import de.doubleslash.keeptime.model.Project;
-import de.doubleslash.keeptime.model.Work;
 import javafx.application.Platform;
 import javafx.scene.control.*;
-import org.h2.tools.RunScript;
 import org.h2.tools.Script;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,6 +50,8 @@ import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+
+import static de.doubleslash.keeptime.Main.main;
 
 @Component
 public class SettingsController {
@@ -136,6 +130,8 @@ public class SettingsController {
    private Stage thisStage;
 
    private Stage aboutStage;
+
+
 
    @Autowired
    ViewController mainscreen;
@@ -254,6 +250,7 @@ public class SettingsController {
       importButton.setOnAction(event ->{
 
          try {
+
             Alert confirmationAlert = new Alert(AlertType.CONFIRMATION , "", ButtonType.YES, ButtonType.NO);
             confirmationAlert.setTitle("Import");
             confirmationAlert.setHeaderText("Do you want to Override current Data ?");
@@ -282,22 +279,24 @@ public class SettingsController {
             final String username = applicationProperties.getSpringDataSourceUserName();
             final String password = applicationProperties.getSpringDataSourcePassword();
 
-            model.getAllProjects().clear();
-            model.getAvailableProjects().clear();
+           Main main = new Main();
+           main.stop();
+           main.restart();
+           aboutStage.close();
+           mainscreen.getMainStage().close();
+           thisStage.close();
 
-            RunScript.execute(url, username, password, file.toString(), Charset.defaultCharset(), true);
+           Importer.main(new String[]{url,username,password,file.toString()});
+            Platform.runLater(() -> {
+               try {
+                  main.init();
+                  main.start(new Stage());
+               } catch (Exception e) {
+                  throw new RuntimeException(e);
+               }
+            });
 
-            List<Project> projects = model.getProjectRepository().findAll();
-            LOG.debug("Found '{}' projects", projects.size());
-            model.getAllProjects().addAll(projects);
-            model.getAvailableProjects()
-                    .addAll(model.getAllProjects().stream().filter(Project::isEnabled).collect(Collectors.toList()));
 
-            Alert informationDialog = new Alert(AlertType.INFORMATION);
-            informationDialog.setTitle("Import done");
-            informationDialog.setHeaderText("The data was imported.");
-            informationDialog.setContentText("KeepTime will now be CLOSED! You have to RESTART it again to see the changes");
-            informationDialog.showAndWait();
 
 
          } catch (SQLException e) {
@@ -309,8 +308,9 @@ public class SettingsController {
             errorDialog.setContentText("Please inform a developer and provide your log file.");
 
             errorDialog.showAndWait();
+         } catch (Exception e) {
+            throw new RuntimeException(e);
          }
-
       });
 
    }

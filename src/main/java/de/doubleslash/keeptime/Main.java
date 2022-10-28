@@ -24,8 +24,13 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import javafx.application.Platform;
+import javafx.util.Builder;
+import org.hibernate.resource.beans.container.spi.BeanContainer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.support.DefaultSingletonBeanRegistry;
+import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -59,13 +64,14 @@ import javafx.scene.layout.Priority;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
+import org.springframework.orm.hibernate5.SpringBeanContainer;
 
 @SpringBootApplication
 public class Main extends Application {
 
    private static final Logger LOG = LoggerFactory.getLogger(Main.class);
 
-   private ConfigurableApplicationContext springContext;
+   private static ConfigurableApplicationContext springContext;
 
    private Stage popupViewStage;
 
@@ -83,7 +89,7 @@ public class Main extends Application {
       final DefaultExceptionHandler defaultExceptionHandler = new DefaultExceptionHandler();
       defaultExceptionHandler.register();
 
-      springContext = SpringApplication.run(Main.class);
+      //springContext = SpringApplication.run(Main.class);
       ApplicationProperties applicationProperties = springContext.getBean(ApplicationProperties.class);
       LOG.info("KeepTime Version: '{}'.", applicationProperties.getBuildVersion());
       LOG.info("KeepTime Build Timestamp: '{}'.", applicationProperties.getBuildTimestamp());
@@ -294,12 +300,29 @@ public class Main extends Application {
       });
    }
 
+   public void restart() throws Exception {
+      ApplicationArguments args = springContext.getBean(ApplicationArguments.class);
+
+
+      Thread thread = new Thread(() -> {
+         springContext.close();
+         springContext = SpringApplication.run(Main.class, args.getSourceArgs());
+      });
+
+      thread.setDaemon(false);
+      thread.start();
+
+   }
+
    @Override
    public void stop() throws Exception {
       springContext.stop();
+
    }
 
-   public static void main(final String[] args) {
+   public static void main(final String[] args) throws Exception {
+      springContext = SpringApplication.run(Main.class);
       launch(Main.class, args);
+
    }
 }

@@ -70,6 +70,8 @@ public class ProjectsListViewController {
    private final Map<Project, Node> projectSelectionNodeMap;
    private final FilteredList<Project> filteredData;
 
+
+
    private final boolean hideable;
 
    public ProjectsListViewController(final Model model, final Controller controller, final Stage mainStage,
@@ -221,10 +223,9 @@ public class ProjectsListViewController {
          LOG.error("Could not load '{}'.", loader.getLocation());
          throw new FXMLLoaderException(e1);
       }
-
       final Label projectNameLabel = (Label) projectElement.getChildren().get(0);
       final Label elapsedTimeLabel = (Label) projectElement.getChildren().get(1);
-      elapsedTimeLabel.textFillProperty().bind(ViewController.fontColorProperty);
+      elapsedTimeLabel.textFillProperty().bind(new ViewController(model,controller).fontColorProperty);
       elapsedProjectTimeLabelMap.put(p, elapsedTimeLabel);
 
       projectNameLabel.setText(p.getName());

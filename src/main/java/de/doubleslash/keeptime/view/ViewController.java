@@ -139,6 +139,10 @@ public class ViewController {
 
    private final Delta dragDelta = new Delta();
 
+   public Stage getMainStage() {
+      return mainStage;
+   }
+
    private Stage mainStage;
 
    private final Controller controller;
@@ -149,7 +153,7 @@ public class ViewController {
 
    private final BooleanProperty mouseHoveringProperty = new SimpleBooleanProperty(false);
    public static final LongProperty activeWorkSecondsProperty = new SimpleLongProperty(0);
-   public static final ObjectProperty<Color> fontColorProperty = new SimpleObjectProperty<>();
+   public final ObjectProperty<Color> fontColorProperty = new SimpleObjectProperty<>();
 
    private Stage reportStage;
    private ReportController reportController;
