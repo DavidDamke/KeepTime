@@ -25,6 +25,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import de.doubleslash.keeptime.common.OS;
+import javafx.application.Platform;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
@@ -219,10 +220,13 @@ public class Main extends Application {
       LOG.debug("Initialising popup UI.");
 
       globalScreenListener = new GlobalScreenListener();
+
       if(!OS.isLinux()) {
          model.useHotkey.addListener((a, b, newValue) -> globalScreenListener.register(newValue));
          globalScreenListener.register(model.useHotkey.get());
       }
+
+
       popupViewStage = new Stage();
       popupViewStage.initOwner(primaryStage);
       // Load root layout from fxml file.
@@ -240,7 +244,6 @@ public class Main extends Application {
       popupViewStage.setAlwaysOnTop(true);
       final ViewControllerPopup viewControllerPopupController = loader.getController();
       viewControllerPopupController.setStage(popupViewStage);
-
       globalScreenListener.setViewController(viewControllerPopupController);
    }
 
