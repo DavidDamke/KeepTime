@@ -52,7 +52,7 @@
       <uniqueVersion>false</uniqueVersion>
       <id>KeepTime</id>
       <name>KeepTime</name>
-      <url>https://github.com/DavidDamke</url>
+      <url>https://github.com/DavidDamke/KeepTime</url>
       <layout>default</layout>
     </repository>
   </distributionManagement>
