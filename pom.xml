@@ -44,7 +44,7 @@
     <maven-dependency-check.failBuildOnCVSS>8.9</maven-dependency-check.failBuildOnCVSS>
   </properties>
   <scm>
-    <developerConnection>scm:git:https://github.com/DavidDamke/KeepTime/feature/test_release_plugin.git</developerConnection>
+    <developerConnection>scm:git:https://github.com/DavidDamke/KeepTime.git</developerConnection>
     <tag>test release</tag>
   </scm>
   <dependencies>
