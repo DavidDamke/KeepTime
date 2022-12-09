@@ -44,7 +44,9 @@
     <!-- 11 is the default -->
     <maven-dependency-check.failBuildOnCVSS>8.9</maven-dependency-check.failBuildOnCVSS>
   </properties>
-
+  <scm>
+    <developerConnection>scm:git:https://github.com/DavidDamke/KeepTime.git</developerConnection>
+  </scm>
   <dependencies>
     <dependency>
       <groupId>org.openjfx</groupId>
@@ -154,6 +156,11 @@
   </profiles>
   <build>
     <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-release-plugin</artifactId>
+        <version>3.0.0-M7</version>
+      </plugin>
       <plugin>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-maven-plugin</artifactId>
