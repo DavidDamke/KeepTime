@@ -48,7 +48,13 @@
     <tag>TEST RELEASE</tag>
   </scm>
   <distributionManagement>
-    <downloadUrl>https://github.com/DavidDamke/KeepTime</downloadUrl>
+    <repository>
+      <uniqueVersion>false</uniqueVersion>
+      <id>de.doubleslash</id>
+      <name>KeepTime</name>
+      <url>https://github.com/DavidDamke/KeepTime</url>
+      <layout>default</layout>
+    </repository>
   </distributionManagement>
   <dependencies>
     <dependency>
