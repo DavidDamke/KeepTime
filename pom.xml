@@ -50,9 +50,9 @@
   <distributionManagement>
     <repository>
       <uniqueVersion>false</uniqueVersion>
-      <id>de.doubleslash</id>
+      <id>KeepTime</id>
       <name>KeepTime</name>
-      <url>https://github.com/DavidDamke/KeepTime</url>
+      <url>https://github.com/DavidDamke</url>
       <layout>default</layout>
     </repository>
   </distributionManagement>
