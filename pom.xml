@@ -47,6 +47,9 @@
     <developerConnection>scm:git:https://github.com/DavidDamke/KeepTime.git</developerConnection>
     <tag>TEST RELEASE</tag>
   </scm>
+  <distributionManagement>
+    <downloadUrl>https://github.com/DavidDamke/KeepTime</downloadUrl>
+  </distributionManagement>
   <dependencies>
     <dependency>
       <groupId>org.openjfx</groupId>
